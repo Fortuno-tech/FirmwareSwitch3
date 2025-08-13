@@ -83,6 +83,20 @@ server.on("/control", HTTP_POST, [&]() {
       server.send(400, "application/json", "{\"error\":\"missing_parameter\"}");
     }
   });
+  server.on("/brightness", HTTP_POST, [&]() {
+    setCORSHeaders();
+    if (server.hasArg("value")) {
+        int brightness = server.arg("value").toInt();
+           brightness = constrain(brightness, 0, 100);
+          analogWrite(LAMPE_LED_D7, map(brightness, 0, 100, 0, 1023));
+           server.send(200, "application/json",
+            "{\"status\":\"ok\",\"led\":\"on\",\"brightness\":" + String(brightness) + "}");
+  
+       
+    } else {
+        server.send(400, "application/json", "{\"error\":\"missing_value\"}");
+    }
+});
 
   server.on("/control", HTTP_OPTIONS, [&]() {
     setCORSHeaders();
