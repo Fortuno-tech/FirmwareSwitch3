@@ -2,6 +2,7 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <ArduinoOTA.h>
+#include <EEPROM.h>
 #include "led.h"
 #include <ArduinoJson.h>
 
@@ -10,6 +11,9 @@ const char *OTA_PASSWORD = "fortico1234";
 
 ESP8266WebServer server(80);
 unsigned long startTime;
+
+#define EEPROM_SIZE 2  // 0 = LED state, 1 = brightness
+
 void setupWiFiAP();
 void setupWebServer();
 
@@ -23,8 +27,17 @@ void setup() {
   digitalWrite(LAMPE_LED_D6, LOW);
   digitalWrite(LAMPE_LED_D7, LOW);
   digitalWrite(LAMPE_LED_D8, LOW);
-  analogWriteRange(1023); // Valeurs 0-1023
-  analogWriteFreq(1000);  // Fréquence PWM
+
+  analogWriteRange(1023);
+  analogWriteFreq(1000);
+
+  // --- EEPROM pour persistance ---
+  EEPROM.begin(EEPROM_SIZE);
+  uint8_t ledState = EEPROM.read(0);
+  uint8_t brightness = EEPROM.read(1);
+
+  digitalWrite(LAMPE_LED_D7, ledState ? HIGH : LOW);
+  analogWrite(LAMPE_LED_D7, map(brightness, 0, 100, 0, 1023));
 
   setupWiFiAP();
   ArduinoOTA.begin();
@@ -38,12 +51,6 @@ void setup() {
 void loop() {
   server.handleClient();
   ArduinoOTA.handle();
-
-  static unsigned long lastBlink = 0;
-  if (millis() - lastBlink > 500) {
-   // digitalWrite(PIN_LED_D3, !digitalRead(PIN_LED_D3));
-    lastBlink = millis();
-  }
 }
 
 void setupWiFiAP() {
@@ -53,7 +60,6 @@ void setupWiFiAP() {
     Serial.println(apSSID);
     Serial.print("IP: ");
     Serial.println(WiFi.softAPIP());
-    digitalWrite(LED_VERT_D4, HIGH);
   } else {
     Serial.println("Erreur création point d'accès!");
   }
@@ -66,52 +72,61 @@ void setupWebServer() {
     server.sendHeader("Access-Control-Allow-Headers", "Content-Type");
   };
 
-  // ---- Contrôle LED ----
- 
-server.on("/control", HTTP_POST, [&]() {
+  // --- Contrôle LED ---
+  server.on("/control", HTTP_POST, [&]() {
     setCORSHeaders();
     if (server.hasArg("state")) {
       String state = server.arg("state");
       if(state == "on"){
         turnOnLED_D7();
-      }else{
+        EEPROM.write(0, 1);
+      } else {
         turnOffLED_D7();
+        EEPROM.write(0, 0);
       }
+      EEPROM.commit();
       server.send(200, "application/json",
-                "{\"status\":\"success\",\"led\":\"" + state + "\",\"timestamp\":" + millis() + "}");
+                  "{\"status\":\"success\",\"led\":\"" + state + "\",\"timestamp\":" + millis() + "}");
     } else {
       server.send(400, "application/json", "{\"error\":\"missing_parameter\"}");
     }
   });
+
   server.on("/brightness", HTTP_POST, [&]() {
     setCORSHeaders();
     if (server.hasArg("value")) {
-        int brightness = server.arg("value").toInt();
-           brightness = constrain(brightness, 0, 100);
-          analogWrite(LAMPE_LED_D7, map(brightness, 0, 100, 0, 1023));
-           server.send(200, "application/json",
-            "{\"status\":\"ok\",\"led\":\"on\",\"brightness\":" + String(brightness) + "}");
-  
-       
+      int brightness = server.arg("value").toInt();
+      brightness = constrain(brightness, 0, 100);
+      analogWrite(LAMPE_LED_D7, map(brightness, 0, 100, 0, 1023));
+
+      // LED automatiquement ON si brightness > 0
+      
+      EEPROM.write(0, brightness > 0 ? 1 : 0);
+      EEPROM.commit();
+
+      server.send(200, "application/json",
+                  "{\"status\":\"ok\",\"brightness\":" + String(brightness) + ",\"led\":\"" + (brightness>0?"on":"off") + "\"}");
     } else {
-        server.send(400, "application/json", "{\"error\":\"missing_value\"}");
+      server.send(400, "application/json", "{\"error\":\"missing_value\"}");
     }
-});
+  });
 
   server.on("/control", HTTP_OPTIONS, [&]() {
     setCORSHeaders();
     server.send(204);
   });
 
-  // ---- Informations système ----
+  // --- Informations système ---
   server.on("/api/info", HTTP_GET, [&]() {
     setCORSHeaders();
     DynamicJsonDocument doc(256);
     doc["ip"] = WiFi.softAPIP().toString();
     doc["mac"] = WiFi.macAddress();
     doc["uptime"] = millis() / 1000;
-    doc["led"] = digitalRead(LAMPE_LED_D6);
-
+    uint8_t ledState = EEPROM.read(0);
+    uint8_t brightness = EEPROM.read(1);
+    doc["led_state"] = ledState ? "on" : "off";
+    doc["brightness"] = brightness;
     String json;
     serializeJson(doc, json);
     server.send(200, "application/json", json);
