@@ -16,11 +16,6 @@ void initSwitch() {
     pinMode(SWITCH_D1, INPUT_PULLUP);
     pinMode(SWITCH_D2, INPUT_PULLUP);
     pinMode(SWITCH_D5, INPUT_PULLUP);
-
-    // Initialisation LEDs éteintes
-    digitalWrite(LAMPE_LED_D6, LOW);
-    digitalWrite(LAMPE_LED_D7, LOW);
-    digitalWrite(LAMPE_LED_D8, LOW);
 }
 
 void outputPin() {

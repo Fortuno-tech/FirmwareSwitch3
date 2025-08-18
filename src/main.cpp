@@ -58,7 +58,6 @@ void setup() {
 void loop() {
   server.handleClient();
   ArduinoOTA.handle();
-  outputPin(); // Vérifier l'état des interrupteurs
 }
 
 

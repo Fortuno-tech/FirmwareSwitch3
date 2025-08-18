@@ -7,18 +7,11 @@ void initLEDs() {
   pinMode(LAMPE_LED_D7, OUTPUT);
   pinMode(LAMPE_LED_D8, OUTPUT);
 
-  pinMode(OUTPUT_LAMPE_D1, OUTPUT);
-  pinMode(OUTPUT_LAMPE_D2, OUTPUT);
-  pinMode(OUTPUT_LAMPE_D3, OUTPUT);
-
   // Éteindre les LEDs au démarrage
   digitalWrite(LAMPE_LED_D6, LOW);
   digitalWrite(LAMPE_LED_D7, LOW);
   digitalWrite(LAMPE_LED_D8, LOW);
-  // Éteindre les sorties des lampes
-  digitalWrite(OUTPUT_LAMPE_D1, LOW);
-  digitalWrite(OUTPUT_LAMPE_D2, LOW);
-  digitalWrite(OUTPUT_LAMPE_D3, LOW);
+
 }
 // Allumer LED D4 (Point d'accès actif)
 void turnOnLED_D6() {
