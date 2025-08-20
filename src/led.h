@@ -7,7 +7,6 @@
 #define D8 15 // Pin for switch D5 
 void initLamps();
 
-
 void setLampState(const String &lampId, bool state);
 bool getLampState(const String &lampId);
 // ⚡ Ajouter cette ligne

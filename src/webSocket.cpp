@@ -4,22 +4,18 @@
 #include "webSocket.h"
 
 WebSocketsServer webSocket = WebSocketsServer(81);
-
-void onWebSocketEvent(uint8_t client_num, WStype_t type, uint8_t *payload, size_t length) {
+void onWebSocketEvent(uint8_t client_num, WStype_t type, uint8_t * payload, size_t length) {
     switch (type) {
         case WStype_CONNECTED: {
             IPAddress ip = webSocket.remoteIP(client_num);
             Serial.printf("[WS] Client %u connecté depuis %s\n", client_num, ip.toString().c_str());
 
-            // Envoyer l’état actuel des lampes au client
-            for (int i = 1; i <= 3; i++) {
-                DynamicJsonDocument doc(128);
-                doc["lamp"] = i;
-                doc["state"] = getLampState(i);   // fonction à créer qui retourne true/false
-                String msg;
-                serializeJson(doc, msg);
-                webSocket.sendTXT(client_num, msg);
-            }
+            // Message de bienvenue
+            DynamicJsonDocument doc(128);
+            doc["status"] = "connected";
+            String msg;
+            serializeJson(doc, msg);
+            webSocket.sendTXT(client_num, msg);
             break;
         }
 
@@ -29,49 +25,41 @@ void onWebSocketEvent(uint8_t client_num, WStype_t type, uint8_t *payload, size_
 
         case WStype_TEXT: {
             String payloadStr = String((char*)payload);
-            Serial.printf("[WS] Message reçu: %s\n", payloadStr.c_str());
+            Serial.printf("[WS] Reçu: %s\n", payloadStr.c_str());
 
             DynamicJsonDocument doc(256);
-            if (deserializeJson(doc, payloadStr) != DeserializationError::Ok) {
-                Serial.println("[WS] Erreur JSON");
-                return;
+            if (deserializeJson(doc, payloadStr) == DeserializationError::Ok) {
+                String action = doc["action"];
+
+                if (action == "toggle") {
+                    String lampId = doc["output"];
+                    bool state = (doc["state"] == "on");
+
+                    setLampState(lampId, state);
+
+                    // Réponse JSON
+                    DynamicJsonDocument res(128);
+                    res["output"] = lampId;
+                    res["state"] = getLampState(lampId) ? "on" : "off";
+                    String msg;
+                    serializeJson(res, msg);
+                    webSocket.sendTXT(client_num, msg);
+                } 
+                else if (action == "brightness") {
+                    String lampId = doc["output"];
+                    int value = doc["value"]; // valeur 0-100
+                    setLampBrightness(lampId, value); // 🔹 PWM
+                    // Réponse JSON
+                    DynamicJsonDocument res(128);
+                    res["output"] = lampId;
+                    res["brightness"] = value;
+                    String msg;
+                    serializeJson(res, msg);
+                    webSocket.sendTXT(client_num, msg);
+                }
             }
-
-            String action = doc["action"];
-
-            if (action == "toggle") {
-                int lamp = doc["lamp"];
-                bool state = doc["state"];
-                setLampState(lamp, state);   // fonction qui allume/éteint
-
-                // renvoyer l'état à tous les clients
-                DynamicJsonDocument res(128);
-                res["lamp"] = lamp;
-                res["state"] = state;
-                String msg;
-                serializeJson(res, msg);
-                webSocket.broadcastTXT(msg);
-            }
-
-            else if (action == "brightness") {
-                int lampId = doc["lamp"];
-                int value = doc["value"];
-                setLampBrightness(lampId, value);   // PWM
-
-                // renvoyer la valeur à tous les clients
-                DynamicJsonDocument res(128);
-                res["lamp"] = lampId;
-                res["brightness"] = value;
-                String msg;
-                serializeJson(res, msg);
-                webSocket.broadcastTXT(msg);
-            }
-
             break;
         }
-
-        default:
-            break;
     }
 }
 

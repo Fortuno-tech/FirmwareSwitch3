@@ -6,14 +6,12 @@
 
 void setup() {
   Serial.begin(115200);
-
   initWiFiAP();     // ⚡ Crée le réseau WiFi "SmartSwitchXXXX"
   initLamps();      // ⚡ Init GPIO lampes
   initWebSocket();  // ⚡ Démarre serveur WebSocket
 }
 
 void loop() {
-   handleSwitches();
   handleWebSocket();
 }
 // ⚡ Boucle principale pour gérer les connexions WebSocket
