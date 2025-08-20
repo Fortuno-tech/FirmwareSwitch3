@@ -12,4 +12,6 @@ bool getLampState(const String &lampId);
 // ⚡ Ajouter cette ligne
 void setLampBrightness(const String &lampId, int value);
 
+void toggleLamp(int lampNumber);
+
 #endif

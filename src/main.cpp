@@ -13,5 +13,6 @@ void setup() {
 
 void loop() {
   handleWebSocket();
+  handleSwitches();
 }
 // ⚡ Boucle principale pour gérer les connexions WebSocket

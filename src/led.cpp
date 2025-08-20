@@ -46,3 +46,14 @@ bool getLampState(const String &lampId) {
     if (lampId == "LAMPE_LED_D8") return lampD8;
     return false;
 }
+// Fonction pour inverser l'état d'une lampe
+void toggleLamp(int lampNumber) {
+    String lampId;
+    if (lampNumber == 1) lampId = "LAMPE_LED_D6";
+    else if (lampNumber == 2) lampId = "LAMPE_LED_D7";
+    else if (lampNumber == 3) lampId = "LAMPE_LED_D8";
+    else return;
+
+    bool currentState = getLampState(lampId);
+    setLampState(lampId, !currentState); // inverse l'état
+}
