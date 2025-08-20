@@ -1,64 +1,48 @@
 #include "led.h"
 
-// Initialisation des LEDs
-void initLEDs() {
-  // Configurer les pins des LEDs
-  pinMode(LAMPE_LED_D6, OUTPUT);
-  pinMode(LAMPE_LED_D7, OUTPUT);
-  pinMode(LAMPE_LED_D8, OUTPUT);
+// Variables pour garder l'état
+bool lampD6 = false;
+bool lampD7 = false;
+bool lampD8 = false;
 
-  // Éteindre les LEDs au démarrage
-  digitalWrite(LAMPE_LED_D6, LOW);
-  digitalWrite(LAMPE_LED_D7, LOW);
-  digitalWrite(LAMPE_LED_D8, LOW);
+void initLamps() {
+    pinMode(D6, OUTPUT);
+    pinMode(D7, OUTPUT);
+    pinMode(D8, OUTPUT);
 
-}
-// Allumer LED D4 (Point d'accès actif)
-void turnOnLED_D6() {
-  digitalWrite(LAMPE_LED_D6, HIGH);
-  digitalWrite(OUTPUT_LAMPE_D1, HIGH);
-
-
+    digitalWrite(D6, LOW);
+    digitalWrite(D7, LOW);
+    digitalWrite(D8, LOW);
 }
 
-// Éteindre LED D4
-void turnOffLED_D6() {
-  digitalWrite(LAMPE_LED_D6, LOW);
-  digitalWrite(OUTPUT_LAMPE_D1, LOW);
+void setLampState(const String &lampId, bool state) {
+    if (lampId == "LAMPE_LED_D6") {
+        lampD6 = state;
+        digitalWrite(D6, state ? HIGH : LOW);
+    } else if (lampId == "LAMPE_LED_D7") {
+        lampD7 = state;
+        digitalWrite(D7, state ? HIGH : LOW);
+    } else if (lampId == "LAMPE_LED_D8") {
+        lampD8 = state;
+        digitalWrite(D8, state ? HIGH : LOW);
+    }
 }
 
-// Allumer LED D3 (Appareil connecté)
-void turnOnLED_D7() {
-  digitalWrite(LAMPE_LED_D7, HIGH);
-  digitalWrite(OUTPUT_LAMPE_D2, HIGH);
-}
+void setLampBrightness(const String &lampId, int value) {
+    // Convertir en PWM (0-1023 pour ESP8266)
+    int pwm = map(value, 0, 100, 0, 1023);
 
-// Éteindre LED D3
-void turnOffLED_D7() {
-  digitalWrite(LAMPE_LED_D7, LOW);
-  digitalWrite(OUTPUT_LAMPE_D2, LOW);
+    if (lampId == "LAMPE_LED_D6") {
+        analogWrite(D6, pwm);
+    } else if (lampId == "LAMPE_LED_D7") {
+        analogWrite(D7, pwm);
+    } else if (lampId == "LAMPE_LED_D8") {
+        analogWrite(D8, pwm);
+    }
 }
-void turnOffLED_D8() {
-  digitalWrite(LAMPE_LED_D8, LOW);
-  digitalWrite(OUTPUT_LAMPE_D3, LOW);
-}
-void turnOnLED_D8() {
-  digitalWrite(LAMPE_LED_D8, HIGH);
-  digitalWrite(OUTPUT_LAMPE_D3, HIGH);
-}
-
-// Basculer LED D4
-void toggleLED_D6() {
-  digitalWrite(LAMPE_LED_D6, !digitalRead(LAMPE_LED_D6));
-  digitalWrite(OUTPUT_LAMPE_D1, !digitalRead(OUTPUT_LAMPE_D1));
-}
-
-// Basculer LED D3
-void toggleLED_D7() {
-  digitalWrite(LAMPE_LED_D7, !digitalRead(LAMPE_LED_D7));
-  digitalWrite(OUTPUT_LAMPE_D2, !digitalRead(OUTPUT_LAMPE_D2));
-}
-void toggleLED_D8() {
-  digitalWrite(LAMPE_LED_D8, !digitalRead(LAMPE_LED_D8));
-  digitalWrite(OUTPUT_LAMPE_D3, !digitalRead(OUTPUT_LAMPE_D3));
+bool getLampState(const String &lampId) {
+    if (lampId == "LAMPE_LED_D6") return lampD6;
+    if (lampId == "LAMPE_LED_D7") return lampD7;
+    if (lampId == "LAMPE_LED_D8") return lampD8;
+    return false;
 }
