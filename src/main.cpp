@@ -9,10 +9,12 @@ void setup() {
   initWiFiAP();     // ⚡ Crée le réseau WiFi "SmartSwitchXXXX"
   initLamps();      // ⚡ Init GPIO lampes
   initWebSocket();  // ⚡ Démarre serveur WebSocket
+  initSwitches(); // ⚡ Init GPIO interrupteurs
 }
 
 void loop() {
-  handleWebSocket();
-  handleSwitches();
+  handleWebSocket(); // ⚡ Gérer les connexions WebSocket
+  
+  handleSwitches(); // ⚡ Gérer les interrupteurs
 }
 // ⚡ Boucle principale pour gérer les connexions WebSocket

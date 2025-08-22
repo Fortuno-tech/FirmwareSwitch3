@@ -1,41 +1,45 @@
 #include "switch.h"
-#include "led.h"   // pour contrôler les lampes
 
-// État précédent des interrupteurs (pour détecter les changements)
-bool lastState1 = LOW;
-bool lastState2 = LOW;
-bool lastState3 = LOW;
+// Variables pour mémoriser l’état précédent des interrupteurs
+bool lastState1 = HIGH;
+bool lastState2 = HIGH;
+bool lastState3 = HIGH;
 
 void initSwitches() {
-    pinMode(SWITCH1_PIN, INPUT_PULLUP);
-    pinMode(SWITCH2_PIN, INPUT_PULLUP);
-    pinMode(SWITCH3_PIN, INPUT_PULLUP);
+    pinMode(SWITCH_D1, INPUT_PULLUP);
+    pinMode(SWITCH_D2, INPUT_PULLUP);
+    pinMode(SWITCH_D5, INPUT_PULLUP);
+
+    pinMode(LAMP1, OUTPUT);
+    pinMode(LAMP2, OUTPUT);
+    pinMode(LAMP3, OUTPUT);
+
+    // Éteindre au démarrage
+    digitalWrite(LAMP1, LOW);
+    digitalWrite(LAMP2, LOW);
+    digitalWrite(LAMP3, LOW);
 }
 
 void handleSwitches() {
-    bool currentState1 = digitalRead(SWITCH1_PIN);
-    bool currentState2 = digitalRead(SWITCH2_PIN);
-    bool currentState3 = digitalRead(SWITCH3_PIN);
+    bool current1 = digitalRead(SWITCH_D1);
+    bool current2 = digitalRead(SWITCH_D2);
+    bool current3 = digitalRead(SWITCH_D5);
 
-    // Détection du changement d'état
-    if (currentState1 != lastState1) {
-        if (currentState1 == HIGH) {
-            toggleLamp(1); // allume/éteint lampe 1
-        }
-        lastState1 = currentState1;
+    // Détection changement interrupteur 1
+    if (current1 != lastState1 && current1 == LOW) {
+        digitalWrite(LAMP1, !digitalRead(LAMP1)); // Toggle lampe 1
     }
+    lastState1 = current1;
 
-    if (currentState2 != lastState2) {
-        if (currentState2 == HIGH) {
-            toggleLamp(2); // allume/éteint lampe 2
-        }
-        lastState2 = currentState2;
+    // Détection changement interrupteur 2
+    if (current2 != lastState2 && current2 == LOW) {
+        digitalWrite(LAMP2, !digitalRead(LAMP2)); // Toggle lampe 2
     }
+    lastState2 = current2;
 
-    if (currentState3 != lastState3) {
-        if (currentState3 == HIGH) {
-            toggleLamp(3); // allume/éteint lampe 3
-        }
-        lastState3 = currentState3;
+    // Détection changement interrupteur 3
+    if (current3 != lastState3 && current3 == LOW) {
+        digitalWrite(LAMP3, !digitalRead(LAMP3)); // Toggle lampe 3
     }
+    lastState3 = current3;
 }
