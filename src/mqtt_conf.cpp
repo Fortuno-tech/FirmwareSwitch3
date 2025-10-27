@@ -62,10 +62,10 @@ bool apModeStarted = false;
 void setupPin()
 {
   pinMode(outputPin1, OUTPUT);
-   pinMode(outputPin2, OUTPUT);
-    pinMode(outputPin3, OUTPUT);
+  pinMode(outputPin2, OUTPUT);
+  pinMode(outputPin3, OUTPUT);
   pinMode(inputPin1, INPUT_PULLUP);
-pinMode(inputPin0, INPUT_PULLUP);
+  pinMode(inputPin0, INPUT_PULLUP);
   pinMode(inputPin3, INPUT_PULLUP);
 }
 
@@ -270,8 +270,12 @@ void handleWiFiAndMQTT()
         client.loop();
         // Publier l'état MQTT
         String statusTopic = "smartSwitch C3/" + macAddress + "/status";
-        String stateMessage = state1 ? "ON" : "OFF";
-        client.publish(statusTopic.c_str(), stateMessage.c_str(), true);
+        String stateMessage1 = state1 ? "ON1" : "OFF1";
+        String stateMessage2 = state2 ? "ON2" : "OFF2";
+        String stateMessage3 = state3 ? "ON3" : "OFF3";
+        client.publish(statusTopic.c_str(), stateMessage1.c_str(), true);
+        client.publish(statusTopic.c_str(), stateMessage2.c_str(), true);
+        client.publish(statusTopic.c_str(), stateMessage3.c_str(), true);
       }
       else
       {
@@ -327,8 +331,7 @@ void callback(char *topic, byte *payload, unsigned int length)
       }
     }
 
-
-       // a) Commande manuelle "state"
+    // a) Commande manuelle "state"
     if (messageStr == "state2")
     {
       if (!horloge.isEnabled())
@@ -351,8 +354,7 @@ void callback(char *topic, byte *payload, unsigned int length)
       }
     }
 
-
-       // a) Commande manuelle "state"
+    // a) Commande manuelle "state"
     if (messageStr == "state3")
     {
       if (!horloge.isEnabled())
@@ -374,7 +376,6 @@ void callback(char *topic, byte *payload, unsigned int length)
         Serial.println("⚠️ Mode horloge actif : commande 'state' ignorée pour éviter conflit.");
       }
     }
-
 
     // CODE POUR SWITCH ALL
     else if (messageStr == "ON_ALL")
@@ -605,7 +606,13 @@ void callback(char *topic, byte *payload, unsigned int length)
     else if (messageStr == "version")
     {
       String statusTopic = "smartSwitch C3/" + macAddress + "/status";
+      String stateMessage1 = state1 ? "ON1" : "OFF1";
+      String stateMessage2 = state2 ? "ON2" : "OFF2";
+      String stateMessage3 = state3 ? "ON3" : "OFF3";
       client.publish(statusTopic.c_str(), FIRMWARE_VERSION, true);
+      client.publish(statusTopic.c_str(), stateMessage1.c_str(), true);
+      client.publish(statusTopic.c_str(), stateMessage2.c_str(), true);
+      client.publish(statusTopic.c_str(), stateMessage3.c_str(), true);
       Serial.println("📤 Version firmware envoyée via MQTT : " + String(FIRMWARE_VERSION));
     }
   }
@@ -615,40 +622,40 @@ void callback(char *topic, byte *payload, unsigned int length)
 
 void checkForUpdates(const char *firmware_url)
 {
-    espClient.setInsecure(); // Ignore SSL
+  espClient.setInsecure(); // Ignore SSL
 
-    Serial.print("🚀 Vérification de mise à jour avec l'URL : ");
-    Serial.println(firmware_url);
+  Serial.print("🚀 Vérification de mise à jour avec l'URL : ");
+  Serial.println(firmware_url);
 
-    HTTPClient http;
-    http.begin(espClient, firmware_url);
-    http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS); // Suivre les redirections
+  HTTPClient http;
+  http.begin(espClient, firmware_url);
+  http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS); // Suivre les redirections
 
-    int httpCode = http.GET();
-    if (httpCode == HTTP_CODE_OK)
+  int httpCode = http.GET();
+  if (httpCode == HTTP_CODE_OK)
+  {
+    Serial.println("✅ URL finale OK, lancement OTA...");
+    t_httpUpdate_return ret = ESPhttpUpdate.update(espClient, firmware_url);
+    switch (ret)
     {
-        Serial.println("✅ URL finale OK, lancement OTA...");
-        t_httpUpdate_return ret = ESPhttpUpdate.update(espClient, firmware_url);
-        switch (ret)
-        {
-        case HTTP_UPDATE_FAILED:
-            Serial.printf("❌ Échec mise à jour: %s\n", ESPhttpUpdate.getLastErrorString().c_str());
-            break;
-        case HTTP_UPDATE_NO_UPDATES:
-            Serial.println("✅ Pas de mise à jour disponible.");
-            break;
-        case HTTP_UPDATE_OK:
-            Serial.println("✅ Mise à jour réussie ! Redémarrage...");
-            ESP.restart();
-            break;
-        }
+    case HTTP_UPDATE_FAILED:
+      Serial.printf("❌ Échec mise à jour: %s\n", ESPhttpUpdate.getLastErrorString().c_str());
+      break;
+    case HTTP_UPDATE_NO_UPDATES:
+      Serial.println("✅ Pas de mise à jour disponible.");
+      break;
+    case HTTP_UPDATE_OK:
+      Serial.println("✅ Mise à jour réussie ! Redémarrage...");
+      ESP.restart();
+      break;
     }
-    else
-    {
-        Serial.printf("❌ HTTP GET échoué, code = %d\n", httpCode);
-    }
+  }
+  else
+  {
+    Serial.printf("❌ HTTP GET échoué, code = %d\n", httpCode);
+  }
 
-    http.end();
+  http.end();
 }
 
 void setupCallBack()
@@ -710,13 +717,13 @@ void outputPin()
   else
     value = '0';
 
-      digitalWrite(outputPin2, state2 ? HIGH : LOW);
+  digitalWrite(outputPin2, state2 ? HIGH : LOW);
   if (state2 == HIGH)
     value = "11";
   else
     value = "01";
 
-      digitalWrite(outputPin3, state3 ? HIGH : LOW);
+  digitalWrite(outputPin3, state3 ? HIGH : LOW);
   if (state3 == HIGH)
     value = "12";
   else
@@ -727,7 +734,7 @@ void inputCheck()
 
   lws_status1 = digitalRead(inputPin1);
   lws_status2 = digitalRead(inputPin3);
- lws_status3 = digitalRead(inputPin0);
+  lws_status3 = digitalRead(inputPin0);
   if (!horloge.isEnabled())
   {
     if (lws_status1 != old_lws_status1)
@@ -746,7 +753,7 @@ void inputCheck()
       value = (state2 == HIGH) ? "01" : "11";
       notifyClients();
     }
-        else if (lws_status3 != old_lws_status3)
+    else if (lws_status3 != old_lws_status3)
     {
       state3 = !state3;
       old_lws_status3 = lws_status3;

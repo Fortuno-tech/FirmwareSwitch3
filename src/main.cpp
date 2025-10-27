@@ -14,7 +14,7 @@
 #include "HorlogeModule.h"
 #include "mode_conf.h"
 #include "config.h"
-const char *FIRMWARE_VERSION = "1.0.1"; // Dernier mise à jour 18 Septembre 2025
+const char *FIRMWARE_VERSION = "1.0.2"; // Dernier mise à jour 27 Octobre 2025 By Jean Fortuno
 
 #define ledSTA D3 // Définir la broche de la LED
 #define ledAp D4
