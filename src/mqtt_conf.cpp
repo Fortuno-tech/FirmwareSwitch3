@@ -92,7 +92,7 @@ void startAPMode()
 
   String macAddress = WiFi.macAddress();
   macAddress.replace(":", "");
-  String ssidAp = "SmartSwitchC1-" + macAddress.substring(0, 4);
+  String ssidAp = "SmartSwitchC3-" + macAddress.substring(0, 4);
 
   WiFi.mode(WIFI_AP);
   WiFi.softAP(ssidAp.c_str(), "Fortico1234", 1);
@@ -247,7 +247,7 @@ void handleWiFiAndMQTT()
       Serial.println("Aucune configuration Wi-Fi trouvée. Mode AP activé.");
       String macAddress = WiFi.macAddress();
       macAddress.replace(":", "");
-      String ssidAp = "SmartSwitchC1-" + macAddress.substring(0, 4);
+      String ssidAp = "SmartSwitchC3-" + macAddress.substring(0, 4);
       WiFi.softAP(ssidAp.c_str(), "Fortico1234", 1);
       initWebSocket();
       server.begin();
@@ -316,7 +316,7 @@ void callback(char *topic, byte *payload, unsigned int length)
 
         // Publier l'état MQTT
         String statusTopic = "smartSwitch C3/" + macAddress + "/status";
-        String stateMessage = state1 ? "ON" : "OFF";
+        String stateMessage = state1 ? "ON1" : "OFF1";
         client.publish(statusTopic.c_str(), stateMessage.c_str(), true);
         Serial.print("État publié sur MQTT : ");
         Serial.println(stateMessage);
@@ -377,7 +377,7 @@ void callback(char *topic, byte *payload, unsigned int length)
 
 
     // CODE POUR SWITCH ALL
-    else if (messageStr == "ON1")
+    else if (messageStr == "ON_ALL")
     {
       if (!horloge.isEnabled())
       {
@@ -388,15 +388,15 @@ void callback(char *topic, byte *payload, unsigned int length)
         digitalWrite(D7, state2);
         digitalWrite(D8, state3);
         Serial.print("État de D8 changé manuellement : ");
-        Serial.println(state1 ? "ON" : "OFF");
-        Serial.println(state2 ? "ON" : "OFF");
-        Serial.println(state3 ? "ON" : "OFF");
+        Serial.println(state1 ? "ON1" : "OFF1");
+        Serial.println(state2 ? "ON2" : "OFF2");
+        Serial.println(state3 ? "ON3" : "OFF3");
 
         // Publier l'état MQTT
         String statusTopic = "smartSwitch C3/" + macAddress + "/status";
-        String stateMessage1 = state1 ? "ON" : "OFF";
-        String stateMessage2 = state2 ? "ON" : "OFF";
-        String stateMessage3 = state3 ? "ON" : "OFF";
+        String stateMessage1 = state1 ? "ON1" : "OFF1";
+        String stateMessage2 = state2 ? "ON2" : "OFF2";
+        String stateMessage3 = state3 ? "ON3" : "OFF3";
         client.publish(statusTopic.c_str(), stateMessage1.c_str(), true);
         client.publish(statusTopic.c_str(), stateMessage2.c_str(), true);
         client.publish(statusTopic.c_str(), stateMessage3.c_str(), true);
@@ -410,7 +410,7 @@ void callback(char *topic, byte *payload, unsigned int length)
         Serial.println("⚠️ Mode horloge actif : commande 'state' ignorée pour éviter conflit.");
       }
     }
-    else if (messageStr == "OFF1")
+    else if (messageStr == "OFF_ALL")
     {
       if (!horloge.isEnabled())
       {
@@ -421,15 +421,15 @@ void callback(char *topic, byte *payload, unsigned int length)
         digitalWrite(D7, state2);
         digitalWrite(D8, state3);
         Serial.print("État de D8 changé manuellement : ");
-        Serial.println(state1 ? "ON" : "OFF");
-        Serial.println(state2 ? "ON" : "OFF");
-        Serial.println(state3 ? "ON" : "OFF");
+        Serial.println(state1 ? "ON1" : "OFF1");
+        Serial.println(state2 ? "ON2" : "OFF2");
+        Serial.println(state3 ? "ON3" : "OFF3");
 
         // Publier l'état MQTT
         String statusTopic = "smartSwitch C3/" + macAddress + "/status";
-        String stateMessage1 = state1 ? "ON" : "OFF";
-        String stateMessage2 = state2 ? "ON" : "OFF";
-        String stateMessage3 = state3 ? "ON" : "OFF";
+        String stateMessage1 = state1 ? "ON1" : "OFF1";
+        String stateMessage2 = state2 ? "ON2" : "OFF2";
+        String stateMessage3 = state3 ? "ON3" : "OFF3";
         client.publish(statusTopic.c_str(), stateMessage1.c_str(), true);
         client.publish(statusTopic.c_str(), stateMessage2.c_str(), true);
         client.publish(statusTopic.c_str(), stateMessage3.c_str(), true);
@@ -604,7 +604,7 @@ void callback(char *topic, byte *payload, unsigned int length)
     // f) Demande de version firmware
     else if (messageStr == "version")
     {
-      String statusTopic = "smartSwitch 31/" + macAddress + "/status";
+      String statusTopic = "smartSwitch C3/" + macAddress + "/status";
       client.publish(statusTopic.c_str(), FIRMWARE_VERSION, true);
       Serial.println("📤 Version firmware envoyée via MQTT : " + String(FIRMWARE_VERSION));
     }
@@ -675,7 +675,7 @@ void setupCallBack()
 
     // 🔹 Publier l'état au démarrage
     String statusTopic = "smartSwitch C3/" + macAddress + "/status";
-    String initialStateMessage = state1 ? "ON" : "OFF";
+    String initialStateMessage = state1 ? "ON1" : "OFF1";
     client.publish(statusTopic.c_str(), initialStateMessage.c_str(), true); // Message retain
 
     Serial.print("Adresse MAC publiée sur MQTT : ");
