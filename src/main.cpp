@@ -14,11 +14,13 @@
 #include "HorlogeModule.h"
 #include "mode_conf.h"
 #include "config.h"
-const char *FIRMWARE_VERSION = "1.0.2"; // Dernier mise à jour 27 Octobre 2025 By Jean Fortuno
+const char *FIRMWARE_VERSION = "1.0.2"; // Dernier mise à jour 28 Octobre 2025 By Jean Fortuno
 
 #define ledSTA D3 // Définir la broche de la LED
 #define ledAp D4
 
+unsigned long lastHeapCheck = 0;
+unsigned long lastAutoRestart = 0;
 unsigned long previousMillisFirebase = 0;
 unsigned long firebaseInterval = 0;
 unsigned long lastInputTime = 0;
@@ -207,4 +209,42 @@ void loop()
     modeMaster();
   else if (deviceRole == "Slave" && WiFi.status() != WL_CONNECTED)
     modeSlave();
+
+
+
+    
+    
+if (millis() - lastHeapCheck > 10000) {
+  lastHeapCheck = millis();
+
+  if (WiFi.getMode() == WIFI_AP) {
+    size_t freeHeap = ESP.getFreeHeap();
+    wl_status_t wifiStatus = WiFi.status();
+    Serial.printf("🔍 [AP] Mémoire libre : %u octets | WiFi status : %d\n", freeHeap, wifiStatus);
+
+    static int lowMemoryCount = 0;
+
+    // Si mémoire très basse à plusieurs reprises → redémarrage
+    if (freeHeap < 10000) {
+      lowMemoryCount++;
+      if (lowMemoryCount >= 5 && millis() - lastAutoRestart > 3600000) {
+        Serial.println("⚠️ Mémoire critique répétée → redémarrage automatique...");
+        lastAutoRestart = millis();
+        delay(1000);
+        ESP.restart();
+      }
+    } else {
+      lowMemoryCount = 0; // Réinitialise si la mémoire revient à la normale
+    }
+
+    // Vérifie aussi si l'AP est encore actif
+    if (WiFi.softAPgetStationNum() == 0 && WiFi.softAPIP().toString() == "0.0.0.0") {
+      Serial.println("⚠️ Point d'accès semble inactif → redémarrage de l'AP");
+      WiFi.softAPdisconnect(true);
+      delay(500);
+       WiFi.softAP(ssidAp.c_str(), passwordAp.c_str(), 1);
+    }
+  }
+}
+
 }

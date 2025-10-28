@@ -195,6 +195,7 @@ void handleWiFiAndMQTT()
     if (tryingWiFi)
     {
       Serial.println("✅ Connecté à " + ssid);
+      WiFi.softAPdisconnect(true);
       digitalWrite(ledSTA, HIGH);
       digitalWrite(ledAp, LOW);
       scanningWiFi = false; // Arrêt du scan
